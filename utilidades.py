@@ -18,7 +18,7 @@ def generarMenu():
         st.page_link('pages/pronostico.py', label='Pronostico')
     
 #Funcion del modelo predictivo
-
+'''
 
 def modelo_rf(df_p):
     st.markdown('## Datos Enfermedades de Pacientes')
@@ -50,4 +50,4 @@ def modelo_rf(df_p):
     y_prediccion = bosque.predict(x_prueba)
     accuracy = accuracy_score(y_prueba, y_prediccion)
     st.write('Metrica de precisión de puntos obtenidos')
-    st.info(accuracy)
+    st.info(accuracy)'''
