@@ -15,5 +15,21 @@ def generarMenu():
             st.header("SMEC")
         
         st.page_link('app.py', label="Inicio")
-        st.page_link('pages/pronostico.py', label='Pronostico')
+        st.page_link('Demografia.py', label="Demografia")
+        st.page_link('Viento.py', label="Viento")
+        st.page_link('Temperatura.py', label="Temperatura")
+
+
+def consumos(df):
+    st.markdown('## Informacion Demografica por consumos')
+    st.write(df.head())
+    st.subheader('Consumo por grupo de personas')
     
+    dep = ['META', 'PUTUMAYO', 'LA GUAJIRA']
+
+    df_departamento = df.groupby(['Departamento'])['valor_consumo'].sum()
+    df_departamento = df_departamento.sort_values(ascending=False)
+    df_departamento.plot(kind='bar', figsize=(12,5), title='Consumo de Energia por departamento')
+
+    st.markdown('### Separamos los datos')
+   
