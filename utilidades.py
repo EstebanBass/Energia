@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
+import seaborn as sns
 from PIL import Image
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -17,13 +18,14 @@ def generarMenu():
         
         st.page_link('app.py', label="Energias Limpias")
         st.page_link('pages/Demografia.py', label="Demografia")
-        st.page_link('pages/Demografia.py', label="Viento")
-        st.page_link('pages/Demografia.py', label="Temperatura")
+        st.page_link('pages/Viento.py', label="Viento")
+        st.page_link('pages/Temperatura.py', label="Temperatura")
 
 
 def consumos(df):
     st.markdown('## Informacion Demografica por consumos\n')
     st.write("Se realizó una validación cuantitativa de los consumos de la red electrica en los departamentos del pais, y esta información se contrasto cons la información demografica entregada por medios de prensa nacionales, regionales y estudios publicados por el gobierno nacional, con el fin de entender cuales eran las zonas con un mayor nivel de complejidad en la consecución de recursos electricos")
+    st.write("Esta es una muestra de la información ustilizada en la base de datos dela información")
     st.write(df.head(2))
     st.subheader('Consumo por grupo de personas')
     
@@ -60,4 +62,49 @@ def consumos(df):
 
 
     st.markdown('### Separamos los datos')
+
+def viento(df_final):
+    estacio2=df_final[df_final['codigoestacion']==15065190]
+    # Crear la figura y el eje
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Graficar cada sensor con un color diferente
+    sns.lineplot(data=estacio2, x='fecha', y='valorobservado', hue='codigoestacion', 
+                style='departamento', markers=True, ax=ax)
+
+    # Configurar etiquetas y título
+    ax.set_xlabel("Fecha")
+    ax.set_ylabel("Valor Observado")
+    ax.set_title("Velocidad de Sensores por Departamento")
+    ax.legend(title="Sensor / Departamento", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # Mostrar en Streamlit
+    st.pyplot(fig)
+
+
+    #Grafico estacion en la Guajira 
+    estacionf=df_final[df_final['codigoestacion']==15065180]
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # ---- GRAFICAR DATOS ----
+    sns.lineplot(
+        data=estacio2, 
+        x='fecha', 
+        y='valorobservado', 
+        hue='codigoestacion', 
+        style='departamento', 
+        markers=True, 
+        ax=ax
+    )
+
+    # ---- CONFIGURACIÓN DE GRÁFICO ----
+    ax.set_xlabel("Fecha")
+    ax.set_ylabel("Valor Observado")
+    ax.set_title("Velocidad de Sensores por Departamento")
+    ax.legend(title="Sensor / Departamento", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # ---- MOSTRAR EN STREAMLIT ----
+    st.pyplot(fig)
+
    
