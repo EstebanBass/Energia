@@ -5,3 +5,4 @@ import streamlit as st
 util.generarMenu()
 
 st.title("Sindrome Metabolico de Enfernmedad Cardiovascular")
+
