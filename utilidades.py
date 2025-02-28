@@ -269,4 +269,196 @@ def viento(df_final):
     st.write("### Mapa de Sensores")
     st.components.v1.html(mapa._repr_html_(), height=500)
 
+
+def temperatura(df_temperatura):
+    st.markdown('## Análisis de Temperatura para los departamentos de La Guajira, Meta y Putumayo.\n')
+    st.write("Se toma como fuente de información los datos de temperatura en un rango de tiempo del 01 de Enero del 2020 a el 4 de Febrero del 2025.")
+    st.write("Fuente de datos: https://www.datos.gov.co/Ambiente-y-Desarrollo-Sostenible/Temperatura/xq6k-pr9h")
+    
+    #%% Cambiamos el tipo de dato Fecha Observacion de tipo object a datetime64[ns]
+    df_temperatura['FechaObservacion'] = pd.to_datetime(df_temperatura['FechaObservacion'])
+    df_temp=df_temperatura
+    # solo tomamos los valores de 6am a 6pm
+    df_temperatura= df_temperatura[(df_temperatura['FechaObservacion'].dt.time >= pd.to_datetime('06:00:00').time()) & (df_temperatura['FechaObservacion'].dt.time <= pd.to_datetime('18:00:00').time())]
+    #%% Separamos los datos por departamento
+    df_Meta1=df_temp[df_temp['Departamento'] == 'META']
+    df_Guajira1=df_temp[df_temp['Departamento'] == 'LA GUAJIRA']
+    df_Putumayo1=df_temp[df_temp['Departamento'] == 'PUTUMAYO']
+    arr_Guajira=df_Guajira1['CodigoEstacion'].unique()
+    arr_Putumayo=df_Putumayo1['CodigoEstacion'].unique()
+    arr_Meta=df_Meta1['CodigoEstacion'].unique()
+    
+    st.write("Para cada departamento se tienen la siguiente cantidad de estaciones donde se toma la temperatura:")
+    #Acá va la tabla:
+    # Datos
+    data = {
+        'Departamento': ['La Guajira','Meta', 'Putumayo'],
+        'Cantidad Estaciones': [len(arr_Guajira), len(arr_Meta), len(arr_Putumayo)]
+    }
+
+    # Crear DataFrame
+    df = pd.DataFrame(data)
+    # Mostrar tabla en Streamlit
+    st.table(df)
+    #%% df Filtrados de 6am a 6pm por departamento
+    df_Meta=df_temperatura[df_temperatura['Departamento'] == 'META']
+    df_Guajira=df_temperatura[df_temperatura['Departamento'] == 'LA GUAJIRA']
+    df_Putumayo=df_temperatura[df_temperatura['Departamento'] == 'PUTUMAYO']
+    
+    #Se Filtran todos los df para los valores entre 15 y 35°C
+    df_15a25P = df_Putumayo[(df_Putumayo['ValorObservado_°C'] >= 15) & (df_Putumayo['ValorObservado_°C'] <= 35)]
+    df_15a25G = df_Guajira[(df_Guajira['ValorObservado_°C'] >= 15) & (df_Guajira['ValorObservado_°C'] <= 35)]
+    df_15a25M = df_Meta[(df_Meta['ValorObservado_°C'] >= 15) & (df_Meta['ValorObservado_°C'] <= 35)]
+    #%% Organizamos los dataframe por orden cronologico
+    df_15a25P=df_15a25P.sort_values(by='FechaObservacion').reset_index(drop=True)
+    df_15a25G=df_15a25G.sort_values(by='FechaObservacion').reset_index(drop=True)
+    df_15a25M=df_15a25M.sort_values(by='FechaObservacion').reset_index(drop=True)
+    # Contar la frecuencia de las estaciones en el dataframe filtrado
+    f_CodEstacP = df_15a25P['CodigoEstacion'].value_counts()
+    f_CodEstacP = f_CodEstacP.sort_values(ascending=False)
+    f_CodEstacG = df_15a25G['CodigoEstacion'].value_counts()
+    f_CodEstacG = f_CodEstacG.sort_values(ascending=False)
+    f_CodEstacM = df_15a25M['CodigoEstacion'].value_counts()
+    f_CodEstacM = f_CodEstacM.sort_values(ascending=False)
+    dfs_codEstGMP = {
+        1: f_CodEstacG,
+        2: f_CodEstacM,
+        3: f_CodEstacP
+    }
+    dfs_Dept = {
+        1: 'La Guajira',
+        2: 'Meta',
+        3: 'Putumayo'
+    }
+    st.write("Tomando como base que la mayor eficiencia energética en paneles solares se da cuando estos reciben temperaturas entre los 15°C y 35°C, se decide filtrar los datos para estas temperaturas entre las 6am y 6pm.")
+    st.write("Se generan gráficas de barras por cada Departamento donde se muestran la cantidad de veces por estación en las que se presentaron las temperaturas entre 15°C y 35°C con el fin de seleccionar las 3 mejores estaciones por Departamento.")
+    for i in range(1, 4):
+        # Crear la figura y el eje
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Plotear los datos en el eje
+        dfs_codEstGMP[i].plot(kind='bar', ax=ax)
+        ax.set_title('Frecuencia de Temperatura en Estaciones de {}'.format(dfs_Dept[i]))
+        ax.set_xlabel('Código de Estación')
+        ax.set_ylabel('Frecuencia de Valores de Temperatura (15°C-25°C)')
+        ax.set_xticks(range(len(dfs_codEstGMP[i])))  # Establecer los valores del eje X
+        ax.set_xticklabels(dfs_codEstGMP[i].index, rotation=45)  # Etiquetas del eje X con rotación
+        
+        # Mostrar la cuadrícula solo en el eje Y
+        ax.grid(axis='y')
+
+        # Mostrar la gráfica en Streamlit
+        st.pyplot(fig)
+    #Se toman las 3 mejores estaciones por departamento:
+    codEstGuajira1,codEstGuajira2,codEstGuajira3=f_CodEstacG.index[0],f_CodEstacG.index[1],f_CodEstacG.index[2]
+    codEstMeta1,codEstMeta2,codEstMeta3=f_CodEstacM.index[0],f_CodEstacM.index[1],f_CodEstacM.index[2]
+    codEstPutumayo1,codEstPutumayo2,codEstPutumayo3=f_CodEstacP.index[0],f_CodEstacP.index[1],f_CodEstacP.index[2]
+    #%%Obtenemos todos los valores de estos codigo de estación
+    df_EficP1,df_EficP2,df_EficP3= df_15a25P[df_15a25P['CodigoEstacion'] == codEstPutumayo1],df_15a25P[df_15a25P['CodigoEstacion'] == codEstPutumayo2],df_15a25P[df_15a25P['CodigoEstacion'] == codEstPutumayo3]
+    df_EficM1,df_EficM2,df_EficM3= df_15a25M[df_15a25M['CodigoEstacion'] == codEstMeta1],df_15a25M[df_15a25M['CodigoEstacion'] == codEstMeta2],df_15a25M[df_15a25M['CodigoEstacion'] == codEstMeta3]
+    df_EficG1,df_EficG2,df_EficG3= df_15a25G[df_15a25G['CodigoEstacion'] == codEstGuajira1],df_15a25G[df_15a25G['CodigoEstacion'] == codEstGuajira2],df_15a25G[df_15a25G['CodigoEstacion'] == codEstGuajira3]
+    # Creamos una nueva columna para los meses y los años
+    df_EficP1['Año'],df_EficP1['Mes'] = df_EficP1['FechaObservacion'].dt.year,df_EficP1['FechaObservacion'].dt.month
+    df_EficP2['Año'],df_EficP2['Mes'] = df_EficP2['FechaObservacion'].dt.year,df_EficP2['FechaObservacion'].dt.month
+    df_EficP3['Año'],df_EficP3['Mes'] = df_EficP3['FechaObservacion'].dt.year,df_EficP3['FechaObservacion'].dt.month
+    df_EficG1['Año'],df_EficG1['Mes'] = df_EficG1['FechaObservacion'].dt.year,df_EficG1['FechaObservacion'].dt.month
+    df_EficG2['Año'],df_EficG2['Mes'] = df_EficG2['FechaObservacion'].dt.year,df_EficG2['FechaObservacion'].dt.month
+    df_EficG3['Año'],df_EficG3['Mes'] = df_EficG3['FechaObservacion'].dt.year,df_EficG3['FechaObservacion'].dt.month
+    df_EficM1['Año'],df_EficM1['Mes'] = df_EficM1['FechaObservacion'].dt.year,df_EficM1['FechaObservacion'].dt.month
+    df_EficM2['Año'],df_EficM2['Mes'] = df_EficM2['FechaObservacion'].dt.year,df_EficM2['FechaObservacion'].dt.month
+    df_EficM3['Año'],df_EficM3['Mes'] = df_EficM3['FechaObservacion'].dt.year,df_EficM3['FechaObservacion'].dt.month
+
+    # Agrupamos por año y mes, y calcular el valor promedio Putumayo
+    df_groupedP1 = df_EficP1.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    df_groupedP2 = df_EficP2.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    df_groupedP3 = df_EficP3.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    dfs_groupedP = {
+        1: df_groupedP1,
+        2: df_groupedP2,
+        3: df_groupedP3
+    }
+    dfs_eficP = {
+        1: df_EficP1,
+        2: df_EficP2,
+        3: df_EficP3
+    }
+    # Agrupamos por año y mes, y calcular el valor promedio Guajira
+    df_groupedG1 = df_EficP1.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    df_groupedG2 = df_EficP2.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    df_groupedG3 = df_EficP3.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    dfs_groupedG = {
+        1: df_groupedG1,
+        2: df_groupedG2,
+        3: df_groupedG3
+    }
+    dfs_eficG = {
+        1: df_EficG1,
+        2: df_EficG2,
+        3: df_EficG3
+    }
+    # Agrupamos por año y mes, y calcular el valor promedio de Meta
+    df_groupedM1 = df_EficP1.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    df_groupedM2 = df_EficP2.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    df_groupedM3 = df_EficP3.groupby(['Año', 'Mes'])['ValorObservado_°C'].mean().unstack(level=0)
+    dfs_groupedM = {
+        1: df_groupedM1,
+        2: df_groupedM2,
+        3: df_groupedM3
+    }
+    dfs_eficM = {
+        1: df_EficM1,
+        2: df_EficM2,
+        3: df_EficM3
+    }
+    st.write("Se grafican los valores de temperatura promedio por mes en cada año para las 3 mejores estaciones de La Guajira.")
+    for i in range(1, 4):
+    # Creamos la figura y el eje
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Ploteamos los datos en el eje
+        dfs_groupedG[i].plot(kind='line', marker='o', ax=ax)
+        ax.set_title('Valor promedio de Temperatura en {} {} codEstacion: {}'.format(dfs_eficG[i]['Municipio'].iloc[0], dfs_eficG[i]['Departamento'].iloc[0], dfs_eficG[i]['CodigoEstacion'].iloc[0]))
+        ax.set_xlabel('Mes')
+        ax.set_ylabel('Valor Observado (°C)')
+        ax.set_xticks(range(1, 13))
+        ax.set_xticklabels(range(1, 13))  # Establecer los valores del eje X de 1 a 12
+        ax.legend(title='Año')
+        ax.grid(True)
+        
+        # Mostrar la gráfica en Streamlit
+        st.pyplot(fig)
+    st.write("Se grafican los valores de temperatura promedio por mes en cada año para las 3 mejores estaciones de Meta.")
+    for i in range(1, 4):
+    # Creamos la figura y el eje
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Ploteamos los datos en el eje
+        dfs_groupedM[i].plot(kind='line', marker='o', ax=ax)
+        ax.set_title('Valor promedio de Temperatura en {} {} codEstacion: {}'.format(dfs_eficM[i]['Municipio'].iloc[0], dfs_eficM[i]['Departamento'].iloc[0], dfs_eficM[i]['CodigoEstacion'].iloc[0]))
+        ax.set_xlabel('Mes')
+        ax.set_ylabel('Valor Observado (°C)')
+        ax.set_xticks(range(1, 13))
+        ax.set_xticklabels(range(1, 13))  # Establecer los valores del eje X de 1 a 12
+        ax.legend(title='Año')
+        ax.grid(True)
+        
+        # Mostrar la gráfica en Streamlit
+        st.pyplot(fig)
+    st.write("Se grafican los valores de temperatura promedio por mes en cada año para las 3 mejores estaciones de Putumayo.")
+    for i in range(1, 4):
+    # Creamos la figura y el eje
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Ploteamos los datos en el eje
+        dfs_groupedP[i].plot(kind='line', marker='o', ax=ax)
+        ax.set_title('Valor promedio de Temperatura en {} {} codEstacion: {}'.format(dfs_eficP[i]['Municipio'].iloc[0], dfs_eficP[i]['Departamento'].iloc[0], dfs_eficP[i]['CodigoEstacion'].iloc[0]))
+        ax.set_xlabel('Mes')
+        ax.set_ylabel('Valor Observado (°C)')
+        ax.set_xticks(range(1, 13))
+        ax.set_xticklabels(range(1, 13))  # Establecer los valores del eje X de 1 a 12
+        ax.legend(title='Año')
+        ax.grid(True)
+        
+        # Mostrar la gráfica en Streamlit
+        st.pyplot(fig)
    

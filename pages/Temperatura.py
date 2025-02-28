@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 import utilidades as util
 import streamlit as st
 import seaborn as sns
-import plotly.express as px
-import numpy as np
 
 util.generarMenu()
+
+df_temperatura = pd.read_csv("data/Temperatura_20250221_Putumayo_Meta_Guajira_Final.csv")
+
+util.temperatura(df_temperatura)
