@@ -27,8 +27,11 @@ def generarMenu():
 
 def consumos(df):
     st.markdown('## Informacion Demografica por consumos\n')
+    st.write('')
     st.write("Se realizó una validación cuantitativa de los consumos de la red electrica en los departamentos del pais, y esta información se contrasto cons la información demografica entregada por medios de prensa nacionales, regionales y estudios publicados por el gobierno nacional, con el fin de entender cuales eran las zonas con un mayor nivel de complejidad en la consecución de recursos electricos")
+    st.write('')
     st.write("Esta es una muestra de la información ustilizada en la base de datos dela información")
+    st.write('')
     st.write(df.head(2))
     st.subheader('Consumo por grupo de personas')
     
@@ -47,9 +50,10 @@ def consumos(df):
     st.pyplot(fig)
 
 
+
     df_departamento_f = df_departamento[df_departamento.index.isin(dep)]
     df_departamento_f.plot(kind='bar', figsize=(12,5), title='Consumo de Energia por departamento')
-    colores = ['#004d00', '#007f0e', '#33cc33', '#99ff99', '#ccffcc']
+    colores = ['#0066cc', '#0080ff', '#3399ff', '#66b3ff', '#99ccff']
 
     fig, ax = plt.subplots(figsize=(8, 8))  # Ajustar tamaño para mejor visualización
 
@@ -82,6 +86,8 @@ def consumos(df):
 
     # Mostrar en Streamlit
     st.pyplot(fig)
+    st.write('')
+    st.write('Al analizar la información de estas empresas, vimos que la unica que tiene proyectos relevantes de energias limpias es EMP, cuyo enofque esta en la energia solar, asunque principalmente tiene ejecución en el departamento de antioquia')
 
 def viento(df_final):
     estacio2=df_final[df_final['codigoestacion']==15065190]
