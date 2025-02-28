@@ -8,4 +8,3 @@ util.generarMenu()
 
 df_temperatura = pd.read_csv("data/Temperatura_20250221_Putumayo_Meta_Guajira_Final.csv")
 
-util.temperatura(df_temperatura)
